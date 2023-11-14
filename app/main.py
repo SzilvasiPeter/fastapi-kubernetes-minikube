@@ -26,8 +26,8 @@ def read_item(item_id: int):
     return {"item_id": item_id, "item_message": item_message}
 
 
-@app.get("/generate_log/{iteration}")
-def generate_log(iteration: int):
-    for i in range(iteration):
+@app.get("/generate_log/{num_logs}")
+def generate_log(num_logs: int):
+    for i in range(num_logs):
         logging.info(f"Generate logs {i}")
     return {"Log generation is done."}
