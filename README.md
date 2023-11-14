@@ -2,11 +2,11 @@
 
 FastAPI web service that is deployed with Kubernetes (K8s) on the local Minikube cluster.
 
-The FastAPI web service has three APIs that logs information in a log file. This log file will be rotated later on using a scheduled K8s Job. Alternatively, you can use Python logging handlers such as `RotatingFileHandler` that supports rotation of log files.
+The FastAPI web service has three APIs that log information in a log file. This log file will be rotated later using a scheduled K8s Job. Alternatively, you can use Python logging handlers such as `RotatingFileHandler` that support the rotation of log files.
 
-The deployment contains local persistent volume (PV) with `ReadWriteMany` access mode. The PV resides in the Minikube cluster under the `/persistent_volume/logs` path. The persistent volume claim (PVC) requests a storage from the local PV. The deployment has one pod replica and pull the docker image from the Minikube cluster. Hence the image pull policy is set to: `imagePullPolicy: Never`. It mounts the `/var/log/fastapi_app` logging folder to the PVC. Then, the pod is exposed as service, listening on the 8000 port.
+The deployment contains local persistent volume (PV) with `ReadWriteMany` access mode. The PV resides in the Minikube cluster under the `/persistent_volume/logs` path. The persistent volume claim (PVC) requests storage from the local PV. The deployment has one pod replica and pulls the docker image from the Minikube cluster. Hence the image pull policy is set to: `imagePullPolicy: Never`. It mounts the `/var/log/fastapi_app` logging folder to the PVC. Then, the pod is exposed as service, listening on the 8000 port.
 
-A scheduled job (`CronJob`) performs log rotation on the logging folder, and it executes at every minute. The job also mounts the logging directory and a log rotation config file (`ConfigMap`). The configuration file is put under the `/etc/logrotate.d` folder. The `copytruncate` option is important because it can be used when some program cannot be told to close its logfile and thus might *continue writing* (appending) to the previous log file forever. If it is omitted, the web service couldn't write to the log file.
+A scheduled job (`CronJob`) performs log rotation on the logging folder, and it executes every minute. The job also mounts the logging directory and a log rotation config file (`ConfigMap`). The configuration file is put under the `/etc/logrotate.d` folder. The `copytruncate` option is important because it can be used when some program cannot be told to close its log file and thus might *continue writing* (appending) to the previous log file forever. If it is omitted, the web service can't write to the log file.
 
 # Prerequisites
 
@@ -16,7 +16,7 @@ A scheduled job (`CronJob`) performs log rotation on the logging folder, and it 
 
 # Deploying with Uvicorn
 
-Create a virtual environement:
+Create a virtual environment:
 
 ```
 python -m venv .venv
