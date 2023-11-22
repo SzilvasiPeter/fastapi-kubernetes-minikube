@@ -37,7 +37,7 @@ metadata:
   name: logrotate-config
 data:
   my_logs.conf: |
-    /var/log/fastapi_app/*.log {
+    /mnt/fastapi_app/*.log {
       rotate 3
       size 100k
       compress
@@ -51,7 +51,7 @@ data:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: app-logrotate
+  name: logrotate-cronjob
 spec:
   schedule: "* * * * *"
   concurrencyPolicy: Forbid
@@ -64,7 +64,7 @@ spec:
             image: docker.io/kicm/logrotate
             volumeMounts:
             - name: local-storage
-              mountPath: /var/log/fastapi_app
+              mountPath: /mnt/fastapi_app
             - name: logrotate-conf
               mountPath: /etc/logrotate.d
           volumes:
@@ -75,6 +75,30 @@ spec:
               configMap:
                 name: logrotate-config
           restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: archiver-cronjob
+spec:
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: archiver
+            image: archiver-image
+            imagePullPolicy: Never
+            volumeMounts:
+              - name: local-storage
+                mountPath: /mnt/fastapi_app
+          restartPolicy: Never
+          volumes:
+            - name: local-storage
+              persistentVolumeClaim:
+                claimName: local-persistent-volume-claim
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -98,7 +122,7 @@ spec:
             - containerPort: 8000
           volumeMounts:
             - name: local-storage
-              mountPath: /var/log/fastapi_app
+              mountPath: /mnt/fastapi_app
       volumes:
         - name: local-storage
           persistentVolumeClaim:
