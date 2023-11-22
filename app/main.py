@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 log_path = Path("/var/log/fastapi_app")
+log_folder = log_path / "logs" if log_path.exists() else Path("logs")
 filename = str(log_path / "my.log") if log_path.exists() else "my.log"
 logging.basicConfig(
     filename=filename,
@@ -58,13 +59,12 @@ def create_file_handlers(num_folders: int, logger: logging.Logger):
         num_folders (int): Number of folders to create
         logger (Logger): Logger instance to which logging handlers are added
     """
-    parent_log = Path("logs")
-    child_path = parent_log
+    child_folder = log_folder
     today = date.today()
     for i in range(num_folders):
-        child_path = parent_log / str(today + timedelta(days=i))
-        child_path.mkdir(parents=True, exist_ok=True)
+        child_folder = log_folder / str(today + timedelta(days=i))
+        child_folder.mkdir(parents=True, exist_ok=True)
 
-        filename = str(child_path / "my.log")
+        filename = str(child_folder / "my.log")
         file_handler = logging.FileHandler(filename)
         logger.addHandler(file_handler)

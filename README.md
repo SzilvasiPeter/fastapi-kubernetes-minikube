@@ -32,7 +32,7 @@ source .venv/Scripts/activate # Windows
 Install the dependencies:
 
 ```
-pip install -r requirements.txt
+pip install -r app/requirements.txt
 ```
 
 Serve the FastAPI web service using Uvicorn web server:
