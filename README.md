@@ -4,9 +4,11 @@ FastAPI web service that is deployed with Kubernetes (K8s) on the local Minikube
 
 The FastAPI web service has APIs to log information. The log file(s) will be rotated later using a scheduled K8s Job. Alternatively, you can use Python logging handlers such as `RotatingFileHandler` that support the rotation of log files.
 
-The deployment contains local persistent volume (PV) with `ReadWriteMany` access mode. The PV resides in the Minikube cluster under the `/persistent_volume/logs` path. The persistent volume claim (PVC) requests storage from the local PV. The deployment has one pod replica and pulls the docker image from the Minikube cluster. Hence the image pull policy is set to: `imagePullPolicy: Never`. It mounts the `/var/log/fastapi_app` logging folder to the PVC. Then, the pod is exposed as service, listening on the 8000 port.
+The deployment contains local persistent volume (PV) with `ReadWriteMany` access mode. The PV resides in the Minikube cluster under the `/persistent_volume/logs` path. The persistent volume claim (PVC) requests storage from the local PV. The deployment has one pod replica and pulls the docker image from the Minikube cluster. Hence the image pull policy is set to: `imagePullPolicy: Never`. It mounts the `/mnt/fastapi_app` logging folder to the PVC. Then, the pod is exposed as service, listening on the 8000 port.
 
-A scheduled job (`CronJob`) performs log rotation on the logging folder, and it executes every minute. The job also mounts the logging directory and a log rotation config file (`ConfigMap`). The configuration file is put under the `/etc/logrotate.d` folder. The `copytruncate` option is important because it can be used when some program cannot be told to close its log file and thus might *continue writing* (appending) to the previous log file forever. If it is omitted, the web service can't write to the log file.
+A scheduled job (`CronJob`) performs log rotation on the logging folder, and it executes every minute. The job also mounts the logging directory and a log rotation config file (`ConfigMap`). The configuration file is put under the `/etc/logrotate.d` folder. The `copytruncate` option is important because it can be used when some program cannot be told to close its log file and thus might *continue writing* (appending) to the previous log file forever. In other words, the web service can't write to the log file if the option is omitted.
+
+There is an additional archiver job that compresses the log folder content and then deletes the old log folders. The archiving is implemented in Python and containerized to be deployed as a cron job. It stores the archived folders in the `archives` directory using the `archived_<current_date>.tar.gz` file format. The archive folder is also attached to the mounted path.
 
 # Prerequisites
 
@@ -50,15 +52,15 @@ python archiver/main.py
 Verify the content of the compressed file:
 
 ```
-tar -tzf <archived_[CURRENT_DATE].tar.gz>
+tar -tzf archives/<archived_[CURRENT_DATE].tar.gz>
 ```
 
 # Deploying with Docker
 
-Build the docker image:
+Build the FastAPI docker image:
 
 ```
-docker build -t fastapi .
+docker build -t fastapi -f app/Dockerfile .
 ```
 
 Create a container from the docker image:
@@ -68,6 +70,18 @@ docker run -p 8000:8000 fastapi
 ```
 
 Visit the <http://localhost:8000/docs> SwaggerUI website. Generate logs via APIs.
+
+Build the archiver docker image:
+
+```
+docker build -t archiver -f archiver/Dockerfile .
+```
+
+Create a container from the docker image:
+
+```
+docker run -it archiver sh
+```
 
 # Deploying with Kubernetes
 
@@ -81,7 +95,8 @@ Reuse the Minikube's Docker daemon:
 
 ```
 eval $(minikube docker-env)
-docker build -t fastapi-image .
+docker build -t fastapi-image -f app/Dockerfile .
+docker build -t archiver-image -f archiver/Dockerfile .
 ```
 
 Go inside the cluster:
@@ -119,6 +134,7 @@ kubectl rollout restart deployment fastapi-deployment # restart deployment
 kubectl describe pod <pod_name> # describe pod info
 kubectl logs <pod_name> -p # get logs from pod
 kubectl exec -it <pod_name> -- sh # attach shell to pod
+docker rmi -f <image_name> # remove image forcefully
 minikube image ls # list minikube images
 minikube ssh # step into minikube
 minikube stop # stop minikube
