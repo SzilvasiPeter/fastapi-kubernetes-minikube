@@ -2,7 +2,7 @@
 
 FastAPI web service that is deployed with Kubernetes (K8s) on the local Minikube cluster.
 
-The FastAPI web service has three APIs that log information in a log file. This log file will be rotated later using a scheduled K8s Job. Alternatively, you can use Python logging handlers such as `RotatingFileHandler` that support the rotation of log files.
+The FastAPI web service has APIs to log information. The log file(s) will be rotated later using a scheduled K8s Job. Alternatively, you can use Python logging handlers such as `RotatingFileHandler` that support the rotation of log files.
 
 The deployment contains local persistent volume (PV) with `ReadWriteMany` access mode. The PV resides in the Minikube cluster under the `/persistent_volume/logs` path. The persistent volume claim (PVC) requests storage from the local PV. The deployment has one pod replica and pulls the docker image from the Minikube cluster. Hence the image pull policy is set to: `imagePullPolicy: Never`. It mounts the `/var/log/fastapi_app` logging folder to the PVC. Then, the pod is exposed as service, listening on the 8000 port.
 
