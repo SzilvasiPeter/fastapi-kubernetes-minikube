@@ -41,6 +41,18 @@ Serve the FastAPI web service using Uvicorn web server:
 uvicorn app.main:app --reload
 ```
 
+Go to the [generate log folders](http://127.0.0.1:8000/docs#/default/generate_log_folders_generate_log_folders__num_folders__get) API and create log folders. After the generation, archive the log folders:
+
+```
+python archiver/main.py
+```
+
+Verify the content of the compressed file:
+
+```
+tar -tzf <archived_[CURRENT_DATE].tar.gz>
+```
+
 # Deploying with Docker
 
 Build the docker image:
