@@ -4,9 +4,9 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-log_path = Path("/var/log/fastapi_app")
-log_folder = log_path / "logs" if log_path.exists() else Path("logs")
-filename = str(log_path / "my.log") if log_path.exists() else "my.log"
+mounted_path = Path("/mnt/fastapi_app")
+log_folder = mounted_path / "logs" if mounted_path.exists() else Path("logs")
+filename = str(mounted_path / "my.log") if mounted_path.exists() else "my.log"
 logging.basicConfig(
     filename=filename,
     level=logging.DEBUG,

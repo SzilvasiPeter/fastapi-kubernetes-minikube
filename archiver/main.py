@@ -5,17 +5,19 @@ import sys
 import glob
 import shutil
 
-log_path = Path("/var/log/fastapi_app")
-log_folder = log_path / "logs" if log_path.exists() else Path("logs")
+mounted_path = Path("/mnt/fastapi_app")
+log_folder = mounted_path / "logs" if mounted_path.exists() else Path("logs")
+archive_folder = mounted_path / "archives" if mounted_path.exists() else Path("archives")
 
 if not log_folder.exists():
     sys.exit()
 
 # Archive all log folders
-shutil.make_archive(f"archived_{date.today()}", "gztar", log_folder)
+archive_folder.mkdir(parents=True, exist_ok=True)
+shutil.make_archive(f"{archive_folder}/archived_{date.today()}", "gztar", log_folder)
 
 # Get the old log folders
-old_folders = glob.glob(log_folder.as_posix() + "/*")[5:]
+old_folders = glob.glob(f"{log_folder}/*")[5:]
 
 # Delete the old log folders
 for folder in old_folders:
