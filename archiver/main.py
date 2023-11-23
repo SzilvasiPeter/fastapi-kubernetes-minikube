@@ -5,9 +5,9 @@ import sys
 import glob
 import shutil
 
-mounted_path = Path("/mnt/fastapi_app")
-log_folder = mounted_path / "logs" if mounted_path.exists() else Path("logs")
-archive_folder = mounted_path / "archives" if mounted_path.exists() else Path("archives")
+mnt_path = Path("/mnt/fastapi_app")
+log_folder = mnt_path / "logs" if mnt_path.exists() else Path("logs")
+archive_folder = mnt_path / "archives" if mnt_path.exists() else Path("archives")
 
 if not log_folder.exists():
     sys.exit()
