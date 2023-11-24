@@ -8,7 +8,7 @@ The deployment contains local persistent volume (PV) with `ReadWriteMany` access
 
 A scheduled job (`CronJob`) performs log rotation on the logging folder, and it executes every minute. The job also mounts the logging directory and a log rotation config file (`ConfigMap`). The configuration file is put under the `/etc/logrotate.d` folder. The `copytruncate` option is important because it can be used when some program cannot be told to close its log file and thus might *continue writing* (appending) to the previous log file forever. In other words, the web service can't write to the log file if the option is omitted.
 
-There is an additional archiver job that compresses the log folder content and then deletes the old log folders. The archiving is implemented in Python and containerized to be deployed as a cron job. It stores the archived folders in the `archives` directory using the `archived_<current_date>.tar.gz` file format. The archive folder is also attached to the mounted path.
+There is an additional archiver job that compresses the log folder content and then deletes them. The archiving is implemented in Python and containerized to be deployed as a cron job. It stores the archived folders in the `archives` directory using the `archived_<current_date>.tar.gz` file format. The archive folder is also attached to the mounted path.
 
 # Prerequisites
 
